@@ -1,97 +1,59 @@
 name: Qualidade e Segurança
- 
+
 on:
+push:
+branches: [ "main" ]
+pull_request:
+branches: [ "main" ]
 
-  push:
-
-    branches: [ "main" ]
-
-  pull_request:
-
-    branches: [ "main" ]
- 
 jobs:
+qualidade-seguranca:
+runs-on: ubuntu-latest
 
-  qualidade-seguranca:
+steps:
+  - name: Checkout do código
+    uses: actions/checkout@v4
 
-    runs-on: ubuntu-latest
- 
-    steps:
+  - name: Instalar Java 11
+    uses: actions/setup-java@v4
+    with:
+      distribution: temurin
+      java-version: 11
+  
+  - name: Compilar o Robô
+    run: |
+      mkdir -p build
+      if [ ! -f libs/robocode.jar ]; then
+        echo "libs/robocode.jar não encontrado. Envie o robocode.jar para a pasta libs/." >&2
+        exit 1
+      fi
+      FILES=$(git ls-files '*.java' || true)
+      if [ -z "$FILES" ]; then
+        echo "Nenhum arquivo .java encontrado para compilar."
+        exit 1
+      fi
+      javac -cp libs/robocode.jar -d build $FILES
 
-      - name: Checkout do código
-
-        uses: actions/checkout@v4
- 
-      - name: Instalar Java 11
-
-        uses: actions/setup-java@v4
-
-        with:
-
-          distribution: temurin
-
-          java-version: 11
- 
-      - name: Compilar o Robô
-
-        run: |
-
-          mkdir -p build
-
-          if [ ! -f libs/robocode.jar ]; then
-
-            echo "libs/robocode.jar não encontrado. Envie o robocode.jar para a pasta libs/." >&2
-
-            exit 1
-
-          fi
-
-          FILES=$(git ls-files '*.java' || true)
-
-          if [ -z "$FILES" ]; then
-
-            echo "Nenhum arquivo .java encontrado para compilar."
-
-            exit 1
-
-          fi
-
-          javac -cp libs/robocode.jar -d build $FILES
- 
   - name: Rodar Checkstyle
-  run: |
-    wget https://github.com/checkstyle/checkstyle/releases/download/checkstyle-10.12.4/checkstyle-10.12.4-all.jar -O checkstyle.jar
-    
-    FILES=$(git ls-files '*.java' || true)
-    
-    if [ -z "$FILES" ]; then
-      echo "Nenhum arquivo .java encontrado para análise de estilo."
-      exit 0
-    fi
-    
-    java -jar checkstyle.jar -c libs/google_checks.xml $FILES
- 
-      - name: Rodar SpotBugs
+    run: |
+      wget https://github.com/checkstyle/checkstyle/releases/download/checkstyle-10.12.4/checkstyle-10.12.4-all.jar -O checkstyle.jar
+      FILES=$(git ls-files '*.java' || true)
+      if [ -z "$FILES" ]; then
+        echo "Nenhum arquivo .java encontrado para análise de estilo."
+        exit 0
+      fi
+      java -jar checkstyle.jar -c libs/google_checks.xml $FILES
 
-        run: |
+  - name: Rodar SpotBugs
+    run: |
+      wget https://github.com/spotbugs/spotbugs/releases/download/4.8.3/spotbugs-4.8.3.tgz -O spotbugs.tgz
+      tar -xvzf spotbugs.tgz
+      chmod +x spotbugs-4.8.3/bin/spotbugs
+      if [ ! -d build ] || [ -z "$(ls -A build)" ]; then
+        echo "Nenhuma classe compilada encontrada em build/. Pulando SpotBugs."
+        exit 0
+      fi
+      ./spotbugs-4.8.3/bin/spotbugs -textui -effort:max -high -auxclasspath libs/robocode.jar build
 
-          wget https://github.com/spotbugs/spotbugs/releases/download/4.8.3/spotbugs-4.8.3.tgz -O spotbugs.tgz
-
-          tar -xvzf spotbugs.tgz
-
-          chmod +x spotbugs-4.8.3/bin/spotbugs
-
-          if [ ! -d build ] || [ -z "$(ls -A build)" ]; then
-
-            echo "Nenhuma classe compilada encontrada em build/. Pulando SpotBugs."
-
-            exit 0
-
-          fi
-
-          ./spotbugs-4.8.3/bin/spotbugs -textui -effort:max -high -auxclasspath libs/robocode.jar build
- 
-      - name: Mensagem final
-
-        run: echo "Pipeline finalizado com sucesso! Código analisado."
- 
+  - name: Mensagem final
+    run: echo "Pipeline finalizado com sucesso! Código analisado."
