@@ -58,23 +58,15 @@ jobs:
 
           javac -cp libs/robocode.jar -d build $FILES
  
-      - name: Rodar Checkstyle
-
-        run: |
-
-          wget https://github.com/checkstyle/checkstyle/releases/download/checkstyle-10.12.4/checkstyle-10.12.4-al… -O checkstyle.jar
-
-          FILES=$(git ls-files '*.java' || true)
-
-          if [ -z "$FILES" ]; then
-
-            echo "Nenhum arquivo .java encontrado para análise de estilo."
-
-            exit 0
-
-          fi
-
-          java -jar checkstyle.jar -c libs/google_checks.xml $FILES
+   - name: Rodar Checkstyle
+  run: |
+    wget https://github.com/checkstyle/checkstyle/releases/download/checkstyle-10.12.4/checkstyle-10.12.4-al… -O checkstyle.jar
+    FILES=$(git ls-files '*.java' || true)
+    if [ -z "$FILES" ]; then
+      echo "Nenhum arquivo .java encontrado para análise de estilo."
+      exit 0
+    fi
+    java -jar checkstyle.jar -c libs/google_checks.xml $FILES
  
       - name: Rodar SpotBugs
 
