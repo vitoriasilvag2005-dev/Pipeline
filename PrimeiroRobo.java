@@ -53,7 +53,7 @@ steps:
         echo "Nenhuma classe compilada encontrada em build/. Pulando SpotBugs."
         exit 0
       fi
-      ./spotbugs-4.8.3/bin/spotbugs -textui -effort:max -high -auxclasspath libs/robocode.jar build
+      ./spotbugs-4.8.3/bin/spotbugs -textui -effort:max -high -auxclasspath libs/robocode.jar build 
 
   - name: Mensagem final
     run: echo "Pipeline finalizado com sucesso! Código analisado."
