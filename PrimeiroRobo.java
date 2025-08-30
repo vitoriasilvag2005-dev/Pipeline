@@ -20,29 +20,23 @@ steps:
       distribution: temurin
       java-version: 11
   
-  - name: Compilar o Robô
+  - name: Compilar e Analisar o Robô
     run: |
-      mkdir -p build
-      if [ ! -f libs/robocode.jar ]; then
-        echo "libs/robocode.jar não encontrado. Certifique-se de que ele está na pasta libs/." >&2
-        exit 1
-      fi
-      javac -cp libs/robocode.jar -d build PrimeiroRobo.java
-
-  - name: Rodar Checkstyle
-    run: |
-      wget https://github.com/checkstyle/checkstyle/releases/download/checkstyle-10.12.4/checkstyle-10.12.4-all.jar -O checkstyle.jar
-      java -jar checkstyle.jar -c libs/google_checks.xml PrimeiroRobo.java
-
-  - name: Rodar SpotBugs
-    run: |
+      mkdir -p build libs
+      # Baixar dependências necessárias
+      wget https://github.com/checkstyle/checkstyle/releases/download/checkstyle-10.12.4/checkstyle-10.12.4-all.jar -O libs/checkstyle.jar
       wget https://github.com/spotbugs/spotbugs/releases/download/4.8.3/spotbugs-4.8.3.tgz -O spotbugs.tgz
       tar -xvzf spotbugs.tgz
-      chmod +x spotbugs-4.8.3/bin/spotbugs
-      if [ ! -d build ] || [ -z "$(ls -A build)" ]; then
-        echo "Nenhuma classe compilada encontrada em build/. Pulando SpotBugs."
-        exit 0
-      fi
+
+      # Compilar o robô
+      javac -cp libs/robocode.jar -d build PrimeiroRobo.java
+
+      # Rodar Checkstyle
+      echo "Executando Checkstyle..."
+      java -jar libs/checkstyle.jar -c libs/google_checks.xml PrimeiroRobo.java
+
+      # Rodar SpotBugs
+      echo "Executando SpotBugs..."
       ./spotbugs-4.8.3/bin/spotbugs -textui -effort:max -high -auxclasspath libs/robocode.jar build
 
   - name: Mensagem final
