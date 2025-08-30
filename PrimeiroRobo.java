@@ -37,7 +37,7 @@ steps:
       java -jar libs/checkstyle.jar -c libs/google_checks.xml PrimeiroRobo.java
 
       # Rodar SpotBugs
-      echo "Executando SpotBugs..."
+      echo "Executando SpotBugs..." 
       ./spotbugs-4.8.3/bin/spotbugs -textui -effort:max -high -auxclasspath libs/robocode.jar build
 
   - name: Mensagem final
