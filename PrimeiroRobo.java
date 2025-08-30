@@ -13,6 +13,13 @@ runs-on: ubuntu-latest
 steps:
   - name: Checkout do código
     uses: actions/checkout@v4
+  
+  # Mover arquivos para as pastas corretas para garantir que o pipeline funcione
+  - name: Organizar arquivos
+    run: |
+      mkdir -p libs
+      mv robocode.jar libs/robocode.jar
+      mv google_checks.xml libs/google_checks.xml
 
   - name: Instalar Java 11
     uses: actions/setup-java@v4
@@ -24,25 +31,15 @@ steps:
     run: |
       mkdir -p build
       if [ ! -f libs/robocode.jar ]; then
-        echo "libs/robocode.jar não encontrado. Envie o robocode.jar para a pasta libs/." >&2
+        echo "libs/robocode.jar não encontrado. Certifique-se de que ele está na pasta libs/." >&2
         exit 1
       fi
-      FILES=$(find src -name "*.java")
-      if [ -z "$FILES" ]; then
-        echo "Nenhum arquivo .java encontrado para compilar."
-        exit 1
-      fi
-      javac -cp libs/robocode.jar -d build $FILES
+      javac -cp libs/robocode.jar -d build monstro_de_bytes.java
 
   - name: Rodar Checkstyle
     run: |
       wget https://github.com/checkstyle/checkstyle/releases/download/checkstyle-10.12.4/checkstyle-10.12.4-all.jar -O checkstyle.jar
-      FILES=$(find src -name "*.java")
-      if [ -z "$FILES" ]; then
-        echo "Nenhum arquivo .java encontrado para análise de estilo."
-        exit 0
-      fi
-      java -jar checkstyle.jar -c libs/google_checks.xml $FILES
+      java -jar checkstyle.jar -c libs/google_checks.xml monstro_de_bytes.java
 
   - name: Rodar SpotBugs
     run: |
@@ -53,7 +50,7 @@ steps:
         echo "Nenhuma classe compilada encontrada em build/. Pulando SpotBugs."
         exit 0
       fi
-      ./spotbugs-4.8.3/bin/spotbugs -textui -effort:max -high -auxclasspath libs/robocode.jar build 
+      ./spotbugs-4.8.3/bin/spotbugs -textui -effort:max -high -auxclasspath libs/robocode.jar build
 
   - name: Mensagem final
     run: echo "Pipeline finalizado com sucesso! Código analisado."
