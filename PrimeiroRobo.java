@@ -27,12 +27,12 @@ steps:
         echo "libs/robocode.jar não encontrado. Certifique-se de que ele está na pasta libs/." >&2
         exit 1
       fi
-      javac -cp libs/robocode.jar -d build primeirorobo.java
-  
+      javac -cp libs/robocode.jar -d build PrimeiroRobo.java
+
   - name: Rodar Checkstyle
     run: |
       wget https://github.com/checkstyle/checkstyle/releases/download/checkstyle-10.12.4/checkstyle-10.12.4-all.jar -O checkstyle.jar
-      java -jar checkstyle.jar -c libs/google_checks.xml monstro_de_bytes.java
+      java -jar checkstyle.jar -c libs/google_checks.xml PrimeiroRobo.java
 
   - name: Rodar SpotBugs
     run: |
@@ -43,7 +43,7 @@ steps:
         echo "Nenhuma classe compilada encontrada em build/. Pulando SpotBugs."
         exit 0
       fi
-      ./spotbugs-4.8.3/bin/spotbugs -textui -effort:max -high -auxclasspath libs/robocode.jar build/aprendizado
+      ./spotbugs-4.8.3/bin/spotbugs -textui -effort:max -high -auxclasspath libs/robocode.jar build
 
   - name: Mensagem final
     run: echo "Pipeline finalizado com sucesso! Código analisado."
