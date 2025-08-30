@@ -36,7 +36,7 @@ steps:
 
   - name: Rodar SpotBugs
     run: |
-      wget https://github.com/spotbugs/spotbugs/releases/download/4.8.3/spotbugs-4.8.3.tgz -O spotbugs.tgz 
+      wget https://github.com/spotbugs/spotbugs/releases/download/4.8.3/spotbugs-4.8.3.tgz -O spotbugs.tgz
       tar -xvzf spotbugs.tgz
       chmod +x spotbugs-4.8.3/bin/spotbugs
       if [ ! -d build ] || [ -z "$(ls -A build)" ]; then
