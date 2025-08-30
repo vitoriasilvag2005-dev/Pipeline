@@ -22,24 +22,22 @@ steps:
   
   - name: Compilar o Robô
     run: |
-  
       mkdir -p build
       if [ ! -f libs/robocode.jar ]; then
         echo "libs/robocode.jar não encontrado. Envie o robocode.jar para a pasta libs/." >&2
         exit 1
       fi
-      FILES=$(git ls-files '*.java' || true)
+      FILES=$(find src -name "*.java")
       if [ -z "$FILES" ]; then
         echo "Nenhum arquivo .java encontrado para compilar."
         exit 1
       fi
-      javac -cp libs/robocode.jar -d build src/*.java
+      javac -cp libs/robocode.jar -d build $FILES
 
   - name: Rodar Checkstyle
     run: |
-
       wget https://github.com/checkstyle/checkstyle/releases/download/checkstyle-10.12.4/checkstyle-10.12.4-all.jar -O checkstyle.jar
-      FILES=$(git ls-files '*.java' || true)
+      FILES=$(find src -name "*.java")
       if [ -z "$FILES" ]; then
         echo "Nenhum arquivo .java encontrado para análise de estilo."
         exit 0
@@ -48,7 +46,6 @@ steps:
 
   - name: Rodar SpotBugs
     run: |
-
       wget https://github.com/spotbugs/spotbugs/releases/download/4.8.3/spotbugs-4.8.3.tgz -O spotbugs.tgz
       tar -xvzf spotbugs.tgz
       chmod +x spotbugs-4.8.3/bin/spotbugs
