@@ -23,6 +23,7 @@ steps:
   - name: Compilar e Analisar o Robô
     run: |
       mkdir -p build libs
+      
       # Baixar dependências necessárias
       wget https://github.com/checkstyle/checkstyle/releases/download/checkstyle-10.12.4/checkstyle-10.12.4-all.jar -O libs/checkstyle.jar
       wget https://github.com/spotbugs/spotbugs/releases/download/4.8.3/spotbugs-4.8.3.tgz -O spotbugs.tgz
@@ -30,7 +31,7 @@ steps:
 
       # Compilar o robô
       javac -cp libs/robocode.jar -d build PrimeiroRobo.java
-
+      
       # Rodar Checkstyle
       echo "Executando Checkstyle..."
       java -jar libs/checkstyle.jar -c libs/google_checks.xml PrimeiroRobo.java
