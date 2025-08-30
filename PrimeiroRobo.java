@@ -1,57 +1,59 @@
-package aprendizado;
-import robocode.*;
-import java.awt.Color;
+name: Qualidade e Segurança
 
-// API help : https://robocode.sourceforge.io/docs/robocode/robocode/Robot.html
+on:
+push:
+branches: [ "main" ]
+pull_request:
+branches: [ "main" ]
 
-/**
- * PrimeiroRobo - a robot by (your name here)
- * Push para teste de webhook
- */
-public class PrimeiroRobo extends Robot
-{
-	/**
-	 * run: PrimeiroRobo's default behavior
-	 */
-	public void run() {
-		// Initialization of the robot should be put here
+jobs:
+qualidade-seguranca:
+runs-on: ubuntu-latest
 
-		// Teste do pipeline antes de push
-		// Teste do pipeline
+steps:
+  - name: Checkout do código
+    uses: actions/checkout@v4
 
-		// After trying out your robot, try uncommenting the import at the top,
-		// and the next line:
-		setColors(Color.green,Color.green,Color.blue); // body,gun,radar
+  - name: Instalar Java 11
+    uses: actions/setup-java@v4
+    with:
+      distribution: temurin
+      java-version: 11
+  
+  - name: Compilar o Robô
+    run: |
+      mkdir -p build
+      if [ ! -f libs/robocode.jar ]; then
+        echo "libs/robocode.jar não encontrado. Envie o robocode.jar para a pasta libs/." >&2
+        exit 1
+      fi
+      FILES=$(git ls-files '*.java' || true)
+      if [ -z "$FILES" ]; then
+        echo "Nenhum arquivo .java encontrado para compilar."
+        exit 1
+      fi
+      javac -cp libs/robocode.jar -d build src/*.java
 
-		// Robot main loop
-		while(true) {
-			// Replace the next 4 lines with any behavior you would like
-			ahead(1);
-			back(1);
-			turnLeft(10000);
-			turnRight(1);
-		}
-	}
+  - name: Rodar Checkstyle
+    run: |
+      wget https://github.com/checkstyle/checkstyle/releases/download/checkstyle-10.12.4/checkstyle-10.12.4-all.jar -O checkstyle.jar
+      FILES=$(git ls-files '*.java' || true)
+      if [ -z "$FILES" ]; then
+        echo "Nenhum arquivo .java encontrado para análise de estilo."
+        exit 0
+      fi
+      java -jar checkstyle.jar -c libs/google_checks.xml $FILES
 
-	/**
-	 * onScannedRobot: What to do when you see another robot
-	 */
-	public void onScannedRobot(ScannedRobotEvent e) {
-		// Replace the next line with any behavior you would like
-		fire(2);
-	}
+  - name: Rodar SpotBugs
+    run: |
+      wget https://github.com/spotbugs/spotbugs/releases/download/4.8.3/spotbugs-4.8.3.tgz -O spotbugs.tgz
+      tar -xvzf spotbugs.tgz
+      chmod +x spotbugs-4.8.3/bin/spotbugs
+      if [ ! -d build ] || [ -z "$(ls -A build)" ]; then
+        echo "Nenhuma classe compilada encontrada em build/. Pulando SpotBugs."
+        exit 0
+      fi
+      ./spotbugs-4.8.3/bin/spotbugs -textui -effort:max -high -auxclasspath libs/robocode.jar build
 
-	/**
-	 * onHitByBullet: What to do when you're hit by a bullet
-	 */
-	public void onHitByBullet(HitByBulletEvent e) {
-		// Replace the next line with any behavior you would like
-	}
-	
-	/**
-	 * onHitWall: What to do when you hit a wall
-	 */
-	public void onHitWall(HitWallEvent e) {
-		// Replace the next line with any behavior you would like
-	}	
-}
+  - name: Mensagem final
+    run: echo "Pipeline finalizado com sucesso! Código analisado."
